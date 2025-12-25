@@ -1,9 +1,18 @@
 import { NextResponse } from "next/server";
 import nodemailer from "nodemailer";
 import { generateEmailTemplate } from "@/components/EmailTemplate";
+import { parseAuthCookie, verifyToken } from "@/lib/serverAuth";
 
 export async function POST(request) {
   try {
+    // Verify auth cookie
+    const cookie = request.headers.get("cookie") || "";
+    const token = parseAuthCookie(cookie);
+    const username = verifyToken(token);
+    if (!username) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
     const { to, subject, message } = await request.json();
 
     // Validation

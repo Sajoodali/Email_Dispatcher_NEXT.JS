@@ -38,11 +38,36 @@ export default function EmailDispatcher() {
   });
 
   useEffect(() => {
-    // Simulate initial loading
-    const timer = setTimeout(() => {
-      setIsLoading(false);
-    }, 1000);
-    return () => clearTimeout(timer);
+    let cancelled = false;
+    async function checkAuth() {
+      try {
+        const res = await fetch("/api/auth/me");
+        const j = await res.json();
+        if (!j.user) {
+          window.location.href = "/login";
+          return;
+        }
+      } catch (e) {
+        window.location.href = "/login";
+        return;
+      }
+      // small delay for UX
+      const timer = setTimeout(() => {
+        if (!cancelled) setIsLoading(false);
+      }, 400);
+      return () => {
+        cancelled = true;
+        clearTimeout(timer);
+      };
+    }
+
+    const cleanup = checkAuth();
+    return () => {
+      cancelled = true;
+      if (cleanup && typeof cleanup.then === "function") {
+        cleanup.then((fn) => { if (typeof fn === "function") fn(); }).catch(() => {});
+      }
+    };
   }, []);
 
   const onSubmit = async (data) => {
