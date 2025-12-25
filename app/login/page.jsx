@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { setToken } from "@/lib/authClient";
 
 export default function LoginPage() {
   const [username, setUsername] = useState("");
@@ -22,6 +23,8 @@ export default function LoginPage() {
       });
       const j = await res.json();
       if (!res.ok) throw new Error(j.error || "Login failed");
+      // Store token in memory only (will be cleared on refresh)
+      if (j.token) setToken(j.token);
       // redirect to dispatcher (root page)
       router.push("/");
     } catch (err) {

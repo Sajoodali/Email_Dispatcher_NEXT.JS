@@ -40,10 +40,8 @@ export async function POST(request) {
     }
 
     const token = createToken(authUsername);
-    const res = NextResponse.json({ success: true, user: { username } });
-    // 1 hour expiry
-    res.headers.set("Set-Cookie", `auth=${token}; HttpOnly; Path=/; Max-Age=3600`);
-    return res;
+    // Return token to client instead of setting persistent cookie.
+    return NextResponse.json({ success: true, user: { username: authUsername }, token });
   } catch (err) {
     console.error("/api/login error", err);
     return NextResponse.json({ error: "Login failed" }, { status: 500 });

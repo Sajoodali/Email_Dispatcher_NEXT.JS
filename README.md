@@ -79,6 +79,16 @@ A modern, professional email dispatcher application built with **Next.js 16** an
    SMTP_PASSWORD=your-app-password
    ```
 
+   Optional authentication variables (recommended for simple deployments):
+   ```env
+   LOGIN_USERNAME=admin
+   LOGIN_PASSWORD=password
+   AUTH_SECRET=replace_this_with_a_random_value
+   ```
+
+   - If `LOGIN_USERNAME`/`LOGIN_PASSWORD` are provided the app will use these credentials for login.
+   - `AUTH_SECRET` signs short-lived tokens. For production set a long random value.
+
    > **Note:** To get an App Password:
    > 1. Enable 2FA on your Google Account
    > 2. Go to Google Account Settings → Security → App Passwords
@@ -102,6 +112,22 @@ A modern, professional email dispatcher application built with **Next.js 16** an
 3. **Compose Message** - Type your message in the text area
 4. **Send Email** - Click the "Send Email" button
 5. **Confirmation** - Receive instant feedback on email delivery
+
+Authentication behavior
+- This project implements a simple authentication flow for the dispatcher UI. By default the login credentials are read from environment variables (`LOGIN_USERNAME`/`LOGIN_PASSWORD`). If not set, the server will fall back to `data/users.json`.
+- The login API returns a short-lived HMAC-signed token which the client stores only in memory. That means:
+   - You remain logged in during SPA navigation.
+   - A full browser refresh clears the token and forces login again (this is intentional for your requested behavior).
+- If you prefer persistent login across refreshes, I can switch the implementation to set an HttpOnly cookie instead.
+
+Quick test (local):
+1. Start dev server:
+```powershell
+npm run dev
+```
+2. Open `http://localhost:3000/login` and sign in with `LOGIN_USERNAME` / `LOGIN_PASSWORD` from `.env.local` (defaults in `env.txt`: `admin` / `password`).
+3. After login you'll be redirected to the dispatcher. Try sending an email.
+4. Refresh the page — you should be redirected back to the login page (token is held in memory only).
 
 ---
 
