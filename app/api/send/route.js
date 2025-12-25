@@ -5,9 +5,16 @@ import { parseAuthCookie, verifyToken } from "@/lib/serverAuth";
 
 export async function POST(request) {
   try {
-    // Verify auth cookie
-    const cookie = request.headers.get("cookie") || "";
-    const token = parseAuthCookie(cookie);
+    // Verify Authorization header (Bearer) first, fallback to cookie
+    const authHeader = request.headers.get("authorization") || "";
+    let token = null;
+    if (authHeader && authHeader.toLowerCase().startsWith("bearer ")) {
+      token = authHeader.slice(7).trim();
+    }
+    if (!token) {
+      const cookie = request.headers.get("cookie") || "";
+      token = parseAuthCookie(cookie);
+    }
     const username = verifyToken(token);
     if (!username) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });

@@ -3,8 +3,18 @@ import { parseAuthCookie, verifyToken } from "@/lib/serverAuth";
 
 export async function GET(request) {
   try {
-    const cookie = request.headers.get("cookie") || "";
-    const token = parseAuthCookie(cookie);
+    // Try Authorization header first (Bearer token)
+    const authHeader = request.headers.get("authorization") || "";
+    let token = null;
+    if (authHeader && authHeader.toLowerCase().startsWith("bearer ")) {
+      token = authHeader.slice(7).trim();
+    }
+    // Fallback to cookie
+    if (!token) {
+      const cookie = request.headers.get("cookie") || "";
+      token = parseAuthCookie(cookie);
+    }
+
     const username = verifyToken(token);
     if (!username) return NextResponse.json({ user: null });
     return NextResponse.json({ user: { username } });

@@ -41,7 +41,12 @@ export default function EmailDispatcher() {
     let cancelled = false;
     async function checkAuth() {
       try {
-        const res = await fetch("/api/auth/me");
+        // Use in-memory token from authClient (not persisted) by sending Authorization header.
+        const { getToken } = await import("@/lib/authClient");
+        const token = getToken();
+        const headers = {};
+        if (token) headers["Authorization"] = `Bearer ${token}`;
+        const res = await fetch("/api/auth/me", { headers });
         const j = await res.json();
         if (!j.user) {
           window.location.href = "/login";
@@ -73,9 +78,14 @@ export default function EmailDispatcher() {
   const onSubmit = async (data) => {
     setIsSending(true);
     try {
+      // include in-memory token in Authorization header
+      const { getToken } = await import("@/lib/authClient");
+      const token = getToken();
+      const headers = { "Content-Type": "application/json" };
+      if (token) headers["Authorization"] = `Bearer ${token}`;
       const response = await fetch("/api/send", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers,
         body: JSON.stringify(data),
       });
 
